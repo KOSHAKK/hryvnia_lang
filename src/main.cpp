@@ -3,36 +3,30 @@
 #include <sstream>
 
 #include <hryvnia_lang/Lexer.hpp>
+#include <hryvnia_lang/Parser.hpp>
 #include <hryvnia_lang/common.hpp>
 
 int main()
 {
-	std::string source = R"(
-		1
-		2
-		#!bin/bash
-		#42 
-		def
-		extern
-		#extern
-		99
-		#pipka popka
-		3.14
-		1.41421356237
-		defextern
-		extern
-		9
-)";
+	std::string source = R"(2
+
++
+
+2)";
 	std::istringstream sstream(source);
 
-	Lexer Q(sstream);
+	Lexer lexer(sstream);
 	
+	auto lexemes = lexer.process();
 
-	auto v = Q.process();
+	Parser p(lexemes);
+	
+	p.parse_primary();
 
-	for (const auto& el : v) {
+	for (const auto& el : lexemes) {
 		std::cout << el << std::endl;
 	}
+
 
 	return 0;
 }

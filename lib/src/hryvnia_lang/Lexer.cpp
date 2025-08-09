@@ -1,19 +1,27 @@
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 #include "Lexer.hpp"
 
 
 Lexer::Lexer(std::istream& in)
     : buffer(in)
-{ }
+{ 
+    last_char = ' ';
+}
 
 Lexeme Lexer::get_next_lexeme()
 {
-    last_char = ' ';
-
     while (std::isspace(last_char))
         last_char = get_next_char();
+
+    if (last_char == '+' || last_char == '-' || last_char == '*' || last_char == '<') {
+        std::string op;
+        op.push_back(last_char);
+        last_char = get_next_char();
+        return { Lexeme::Token::tok_binop, std::move(op) };
+    }
 
 
     if (std::isalpha(last_char)) {
@@ -39,6 +47,9 @@ Lexeme Lexer::get_next_lexeme()
         return { Lexeme::Token::tok_number, num_val };
 
     }
+
+
+
 
     if (last_char == '#') { 
         do

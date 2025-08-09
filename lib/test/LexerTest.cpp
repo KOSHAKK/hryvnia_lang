@@ -46,3 +46,39 @@ TEST(Lexer, Test1) {
 
 	EXPECT_EQ(processed, expected);
 }
+
+
+TEST(Lexer, Test2) {
+
+	std::string source = R"(
+		2+2
+		42-990.32
+		5852*13+1
+		432.22 < 101.22
+)";
+
+	std::istringstream sstream(source);
+	Lexer lex(sstream);
+
+	auto processed = lex.process();
+
+	std::vector<Lexeme> expected
+	{
+		{ Lexeme::Token::tok_number, 2.0 },
+		{ Lexeme::Token::tok_binop, "+" },
+		{ Lexeme::Token::tok_number , 2.0 },
+		{ Lexeme::Token::tok_number , 42.0 },
+		{ Lexeme::Token::tok_binop, "-"},
+		{ Lexeme::Token::tok_number, 990.32 },
+		{ Lexeme::Token::tok_number, 5852.0 },
+		{ Lexeme::Token::tok_binop, "*" },
+		{ Lexeme::Token::tok_number , 13.0},
+		{ Lexeme::Token::tok_binop, "+" },
+		{ Lexeme::Token::tok_number, 1.0 },
+		{ Lexeme::Token::tok_number, 432.22 },
+		{ Lexeme::Token::tok_binop, "<" },
+		{ Lexeme::Token::tok_number, 101.22 },
+	};
+
+	EXPECT_EQ(processed, expected);
+}

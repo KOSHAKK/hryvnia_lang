@@ -1,22 +1,27 @@
 #pragma once
 #include <variant>
+#include <cmath>
 
 struct Lexeme
 {
     enum class Token
     {
-        tok_eof = -1,
+        tok_eof,
 
         // commands
-        tok_def = -2,
-        tok_extern = -3,
+        tok_def,
+        tok_extern,
 
         // primary
-        tok_identifier = -4,
-        tok_number = -5,
+        tok_identifier,
+        tok_number,
 
+        tok_lparen,
+        tok_rparen,
 
-        tok_undefine = 0,
+        tok_binop,
+
+        tok_undefine,
     };
 
     bool operator==(const Lexeme& other) const {
