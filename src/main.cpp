@@ -2,38 +2,36 @@
 #include <fstream>
 #include <sstream>
 
-#include "Lexer.hpp"
-#include "common.hpp"
-
+#include <hryvnia_lang/Lexer.hpp>
+#include <hryvnia_lang/common.hpp>
 
 int main()
 {
 	std::string source = R"(
+		1
+		2
 		#!bin/bash
 		#42 
 		def
 		extern
-		#extern 
+		#extern
 		99
 		#pipka popka
 		3.14
 		1.41421356237
 		defextern
 		extern
+		9
 )";
-
 	std::istringstream sstream(source);
 
 	Lexer Q(sstream);
 	
-	Lexeme l;
-	l = Q.get_next_token();
 
-	while (l.token != Lexeme::Token::tok_eof)
-	{
-		std::cout << static_cast<int>(l.token) << " ";
-		std::visit([](auto& val) {std::cout << val << std::endl; }, l.value);
-		l = Q.get_next_token();
+	auto v = Q.process();
+
+	for (const auto& el : v) {
+		std::cout << el << std::endl;
 	}
 
 	return 0;

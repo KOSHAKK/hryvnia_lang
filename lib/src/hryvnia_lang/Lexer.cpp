@@ -8,7 +8,7 @@ Lexer::Lexer(std::istream& in)
     : buffer(in)
 { }
 
-Lexeme Lexer::get_next_token()
+Lexeme Lexer::get_next_lexeme()
 {
     last_char = ' ';
 
@@ -46,13 +46,27 @@ Lexeme Lexer::get_next_token()
         while (last_char != EOF && last_char != '\n' && last_char != '\r');
 
         if (last_char != EOF)
-            return get_next_token();
+            return get_next_lexeme();
     }
 
     if (last_char == EOF)
         return { Lexeme::Token::tok_eof };
 
     return { Lexeme::Token::tok_undefine };
+}
+
+std::vector<Lexeme> Lexer::process()
+{
+    std::vector<Lexeme> v;
+    
+    Lexeme l;
+    do {
+        l = get_next_lexeme();
+        v.push_back(l);
+    } while (l.token != Lexeme::Token::tok_eof);
+    v.pop_back();
+
+    return v;
 }
 
 char Lexer::get_next_char()

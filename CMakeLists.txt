@@ -1,18 +1,25 @@
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.31)
+project(hryvnia_lang)
 
-set(PROJECT_NAME hryvnia_lang)
-project(${PROJECT_NAME})
+set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME} 
-	src/main.cpp
-	src/Lexer.cpp
-	
-	src/Lexer.hpp
-	src/Lexeme.hpp
-	src/common.hpp
-	
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.14.0
 )
+FetchContent_MakeAvailable(googletest)
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+add_subdirectory(lib)
 
+file(GLOB_RECURSE CPP_SRCS src/*.cpp)
+file(GLOB_RECURSE HPP_SRCS src/*.hpp)
 
+set(SRCS ${CPP_SRCS} ${HPP_SRCS})
+
+add_executable(${PROJECT_NAME} ${SRCS})
+target_include_directories(${PROJECT_NAME} PUBLIC lib/src/hryvnia_lang)
+target_link_libraries(${PROJECT_NAME} PUBLIC hryvnia_lang_lib)
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
