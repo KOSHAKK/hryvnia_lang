@@ -39,7 +39,7 @@ TEST(Lexer, Test1) {
 		{ Lexeme::Token::tok_number, 99.0 },
 		{ Lexeme::Token::tok_number, 3.14 },
 		{ Lexeme::Token::tok_number, 1.41421 },
-		{ Lexeme::Token::tok_identifier },
+		{ Lexeme::Token::tok_identifier , "defextern"},
 		{ Lexeme::Token::tok_extern , "extern"},
 		{ Lexeme::Token::tok_number, 9.0 },
 	};

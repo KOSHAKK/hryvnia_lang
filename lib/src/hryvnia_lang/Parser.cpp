@@ -47,14 +47,27 @@ std::unique_ptr<ExprAST> Parser::parse_identifier_expr()
 {
 	std::string id_name = std::get<std::string>(curr_lexeme->value);
 
+
 	++curr_lexeme;
+
+	//if (std::holds_alternative<double>(curr_lexeme->value))
+	//	return parse_number_expr();
+
+	// 3.0 != "("
+	
+	if (!std::holds_alternative<std::string>(curr_lexeme->value)) {
+		return std::make_unique<VariableExprAST>(id_name);
+	}
+
 
 	if (std::get<std::string>(curr_lexeme->value) != "(")
 		return std::make_unique<VariableExprAST>(id_name);
 
+	
+
 	++curr_lexeme;
 	std::vector<std::unique_ptr<ExprAST>> args;
-	if (std::get<std::string>(curr_lexeme->value) != ")") {
+	if (!std::holds_alternative<std::string>(curr_lexeme->value) || std::get<std::string>(curr_lexeme->value) != ")") {
 		while (true) 
 		{
 			if (auto arg = parse_expr()) 
@@ -62,10 +75,10 @@ std::unique_ptr<ExprAST> Parser::parse_identifier_expr()
 			else
 				return nullptr;
 			
-			if (std::get<std::string>(curr_lexeme->value) == ")")
+			if (std::holds_alternative<std::string>(curr_lexeme->value) && std::get<std::string>(curr_lexeme->value) == ")")
 				break;
 
-			if (std::get<std::string>(curr_lexeme->value) != ",")
+			if (!std::holds_alternative<std::string>(curr_lexeme->value) || std::get<std::string>(curr_lexeme->value) != ",")
 				return log_error("Expected ')' or ',' in argument list");
 			++curr_lexeme;
 		}
@@ -128,4 +141,107 @@ int Parser::get_tok_precedence()
 
 	if (tok_prec <= 0) return -1;
 	return tok_prec;
+}
+
+std::unique_ptr<PrototypeAST> Parser::parse_prototype()
+{
+	if (curr_lexeme->token != Lexeme::Token::tok_identifier)
+		return log_error_p("Expected function name in prototype");
+
+	std::string fn_name = std::get<std::string>(curr_lexeme->value);
+	++curr_lexeme;
+
+	if (std::get<std::string>(curr_lexeme->value) != "(")
+		return log_error_p("Expected '(' in prototype");
+
+	std::vector<std::string> arg_names;
+	while ((++curr_lexeme)->token == Lexeme::Token::tok_identifier)
+		arg_names.push_back(std::get<std::string>(curr_lexeme->value));
+	if (std::get<std::string>(curr_lexeme->value) != ")")
+		return log_error_p("Expected ')' in prototype");
+
+	// success.
+	++curr_lexeme;
+
+	return std::make_unique<PrototypeAST>(fn_name, std::move(arg_names));
+}
+
+std::unique_ptr<FunctionAST> Parser::parse_definition()
+{
+	++curr_lexeme;
+	auto proto = parse_prototype();
+	if (!proto) return nullptr;
+
+	if (auto E = parse_expr())
+		return std::make_unique<FunctionAST>(std::move(proto), std::move(E));
+	return nullptr;
+}
+
+std::unique_ptr<PrototypeAST> Parser::parse_extern()
+{
+	++curr_lexeme;
+	return parse_prototype();
+}
+
+std::unique_ptr<FunctionAST> Parser::parse_top_level_expr()
+{
+	if (auto E = parse_expr()) {
+		auto Proto = std::make_unique<PrototypeAST>("", std::vector<std::string>());
+		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
+	}
+	return nullptr;
+}
+
+void Parser::handle_definition()
+{
+	if (parse_definition()) {
+		std::cerr << "Parsed a function definition." << std::endl;
+	}
+	else {
+		++curr_lexeme;
+	}
+}
+
+void Parser::handle_extern()
+{
+	if (parse_extern()) {
+		std::cerr << "Parsed an extern." << std::endl;
+	}
+	else {
+		++curr_lexeme;
+	}
+}
+
+void Parser::handle_top_level_expression()
+{
+	// Evaluate a top-level expression into an anonymous function.
+	if (parse_top_level_expr()) {
+		std::cerr << "Parsed a top-level expr" << std::endl;
+	}
+	else {
+		// Skip token for error recovery.
+		++curr_lexeme;
+	}
+}
+
+void Parser::parse()
+{
+	while (true) {
+		switch (curr_lexeme->token) {
+		case Lexeme::Token::tok_eof:
+			return;
+		case Lexeme::Token::tok_semicol:
+			++curr_lexeme;
+			break;
+		case Lexeme::Token::tok_def:
+			handle_definition();
+			break;
+		case Lexeme::Token::tok_extern:
+			handle_extern();
+			break;
+		default:
+			handle_top_level_expression();
+			break;
+		}
+	}
 }

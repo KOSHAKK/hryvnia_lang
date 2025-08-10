@@ -11,6 +11,10 @@ std::ostream& operator<<(std::ostream& os, Lexeme::Token token) {
     case Lexeme::Token::tok_def:        os << "tok_def"; break;
     case Lexeme::Token::tok_extern:     os << "tok_extern"; break;
     case Lexeme::Token::tok_binop:      os << "tok_binop"; break;
+    case Lexeme::Token::tok_lparen:     os << "tok_lparen"; break;
+    case Lexeme::Token::tok_rparen:     os << "tok_rparen"; break;
+    case Lexeme::Token::tok_eof:        os << "tok_eof"; break;
+    case Lexeme::Token::tok_comma:      os << "tok_comma"; break;
     default:                            os << "unknown_token"; break;
     }
     return os;

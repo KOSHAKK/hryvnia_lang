@@ -19,6 +19,9 @@ struct Lexeme
         tok_lparen,
         tok_rparen,
 
+        tok_semicol,
+        tok_comma,
+
         tok_binop,
 
         tok_undefine,

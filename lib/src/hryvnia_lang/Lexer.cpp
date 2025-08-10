@@ -13,7 +13,7 @@ Lexer::Lexer(std::istream& in)
 
 Lexeme Lexer::get_next_lexeme()
 {
-    while (std::isspace(last_char))
+        while (std::isspace(last_char))
         last_char = get_next_char();
 
     if (last_char == '+' || last_char == '-' || last_char == '*' || last_char == '<') {
@@ -23,17 +23,40 @@ Lexeme Lexer::get_next_lexeme()
         return { Lexeme::Token::tok_binop, std::move(op) };
     }
 
+    if (last_char == '(') {
+        last_char = get_next_char();
+        return { Lexeme::Token::tok_lparen, "(" };
+    }
+    if (last_char == ')') {
+        last_char = get_next_char();
+        return { Lexeme::Token::tok_rparen, ")" };
+    }
+
+    if (last_char == ',') {
+        last_char = get_next_char();
+        return { Lexeme::Token::tok_comma, "," };
+    }
+
+    if (last_char == ';') {
+        last_char = get_next_char();
+        return { Lexeme::Token::tok_semicol, ";" };
+    }
 
     if (std::isalpha(last_char)) {
         identifier_str = last_char;
         while (std::isalnum((last_char = get_next_char())))
             identifier_str += last_char;
 
-        if (identifier_str == "def")
+        if (identifier_str == "def") {
+            //last_char = get_next_char();
             return { Lexeme::Token::tok_def, identifier_str };
-        if (identifier_str == "extern")
+        }
+        if (identifier_str == "extern") {
+            //last_char = get_next_char();
             return { Lexeme::Token::tok_extern, identifier_str };
-        return { Lexeme::Token::tok_identifier };
+        }
+        //last_char = get_next_char();
+        return { Lexeme::Token::tok_identifier, identifier_str };
     }
 
     if (isdigit(last_char) || last_char == '.') {
