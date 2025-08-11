@@ -10,36 +10,35 @@
 int main()
 {
 	std::string source = R"(
+		
 
-		def foo2(y) foo1(y, foo3(5.0));
-		def foo(x y) x+foo1(y, 3.0);
-		extern sin(a);
-		extern pow(a b);
-		def foo(x y) x+foo(y, 4.0)
-		def foo(x y) x+y y;
-		def foo(x y) x*y;
-		2 2;
+		def foo(x y) x+y;
 
 )";
 	std::istringstream sstream(source);
 
 	Lexer lexer(sstream);
-	
+
 	auto lexemes = lexer.process();
-	lexemes.push_back({ Lexeme::Token::tok_eof });
 
 
 	Parser p(lexemes);
 
-	p.parse();
+	auto v = p.parse();
 
-	//std::vector<ExprAST>
-	
 
-	//for (const auto& el : lexemes) {
-	//	std::cout << el << std::endl;
-	//}
 
+
+	ASTNode f = v[0];
+
+
+	BinaryExprAST bin('+', std::make_shared<VariableExprAST>("x"), std::make_shared<VariableExprAST>("y"));
+	PrototypeAST prot("foo", std::vector<std::string>{"x", "y"});
+	FunctionAST my_f(std::make_shared<PrototypeAST>(prot), std::make_shared<BinaryExprAST>(bin));
+
+	ASTNode my_node = std::make_shared<FunctionAST>(my_f);
+
+	std::cout << (f == my_node) << std::endl;
 
 	return 0;
 }

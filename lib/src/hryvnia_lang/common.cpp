@@ -20,6 +20,17 @@ std::ostream& operator<<(std::ostream& os, Lexeme::Token token) {
     return os;
 }
 
+
+//bool astnode_equal(const ASTNode& lhs, const ASTNode& rhs)
+//{
+//    if (lhs.index() != rhs.index())
+//        return false;
+//
+//
+//
+//}
+
+
 std::ostream& operator<<(std::ostream& os, const Lexeme& lex) {
     os << "{ token: " << lex.token << ", value: ";
     std::visit([&os](auto& value) { os << value; }, lex.value);
@@ -36,3 +47,4 @@ std::unique_ptr<PrototypeAST> log_error_p(const char* str) {
     log_error(str);
     return nullptr;
 }
+

@@ -2,73 +2,110 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <variant>
+#include <cmath>
 
 class ExprAST {
 public:
-	virtual ~ExprAST() = default;
+    virtual ~ExprAST() = default;
+    virtual bool equals(const ExprAST& other) const = 0;
 };
-
 
 class NumberExprAST : public ExprAST {
-	double val;
-
 public:
-	NumberExprAST(double val) : val(val) {}
+    double val;
+    NumberExprAST(double v) : val(v) {}
+    bool equals(const ExprAST& other) const override {
+        if (auto p = dynamic_cast<const NumberExprAST*>(&other))
+            return std::fabs(val - p->val) < 1e-5;
+        return false;
+    }
 };
-
 
 class VariableExprAST : public ExprAST {
-	std::string name;
-
 public:
-	VariableExprAST(const std::string& name) : name(name) {}
+    std::string name;
+    VariableExprAST(const std::string& n) : name(n) {}
+    bool equals(const ExprAST& other) const override {
+        if (auto p = dynamic_cast<const VariableExprAST*>(&other))
+            return name == p->name;
+        return false;
+    }
 };
-
 
 class BinaryExprAST : public ExprAST {
-	char op;
-	std::unique_ptr<ExprAST> lhs, rhs;
-
 public:
-	BinaryExprAST(char op, std::unique_ptr<ExprAST> lhs,
-		std::unique_ptr<ExprAST> rhs)
-		: op(op), lhs(std::move(lhs)), rhs(std::move(rhs)) {
-	}
+    char op;
+    std::shared_ptr<ExprAST> lhs, rhs;
+    BinaryExprAST(char op_, std::shared_ptr<ExprAST> L, std::shared_ptr<ExprAST> R)
+        : op(op_), lhs(std::move(L)), rhs(std::move(R)) {
+    }
+    bool equals(const ExprAST& other) const override {
+        if (auto p = dynamic_cast<const BinaryExprAST*>(&other)) {
+            if (op != p->op) return false;
+            if (!lhs && !p->lhs && !rhs && !p->rhs) return true;
+            if (!lhs || !p->lhs || !rhs || !p->rhs) return false;
+            return lhs->equals(*p->lhs) && rhs->equals(*p->rhs);
+        }
+        return false;
+    }
 };
 
-
 class CallExprAST : public ExprAST {
-	std::string callee;
-	std::vector<std::unique_ptr<ExprAST>> args;
-
 public:
+	std::string callee;
+	std::vector<std::shared_ptr<ExprAST>> args;
+
 	CallExprAST(const std::string& callee,
-		std::vector<std::unique_ptr<ExprAST>> args)
+		std::vector<std::shared_ptr<ExprAST>> args)
 		: callee(callee), args(std::move(args)) {
 	}
+    bool equals(const ExprAST& other) const override {
+        if (auto p = dynamic_cast<const CallExprAST*>(&other)) {
+            if ((callee != p->callee) || args.size() != p->args.size()) return false;
+            for (int i = 0; i < callee.size(); i++) {
+                if (!args[i]->equals(*(p->args[i])))
+                    return false;
+            }
+            return true;
+        }
+    }
 };
 
 
 class PrototypeAST {
+public:
 	std::string name;
 	std::vector<std::string> args;
 
-public:
 	PrototypeAST(const std::string& name, std::vector<std::string> args)
 		: name(name), args(std::move(args)) {
 	}
-
-	const std::string& get_name() const { return name; }
+    bool equals(const PrototypeAST& other) const {
+        return name == other.name && args == other.args;
+    }
 };
 
 
 class FunctionAST {
-	std::unique_ptr<PrototypeAST> proto;
-	std::unique_ptr<ExprAST> body;
-
 public:
-	FunctionAST(std::unique_ptr<PrototypeAST> proto,
-		std::unique_ptr<ExprAST> body)
+	std::shared_ptr<PrototypeAST> proto;
+	std::shared_ptr<ExprAST> body;
+
+	FunctionAST(std::shared_ptr<PrototypeAST> proto,
+		std::shared_ptr<ExprAST> body)
 		: proto(std::move(proto)), body(std::move(body)) {
 	}
+    bool equals(const FunctionAST& other) const {
+        if (!proto->equals(*other.proto)) return false;
+        if (!body->equals(*other.body)) return false;
+        return true;
+    }
 };
+
+using ASTNode = std::variant<std::shared_ptr<ExprAST>, std::shared_ptr<FunctionAST>, std::shared_ptr<PrototypeAST>, std::nullptr_t>;
+
+
+bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs);
+
+bool operator==(const ASTNode& lhs, const ASTNode& rhs);

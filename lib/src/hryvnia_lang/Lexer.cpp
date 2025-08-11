@@ -98,7 +98,6 @@ std::vector<Lexeme> Lexer::process()
         l = get_next_lexeme();
         v.push_back(l);
     } while (l.token != Lexeme::Token::tok_eof);
-    v.pop_back();
 
     return v;
 }

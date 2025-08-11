@@ -12,7 +12,7 @@ Parser::Parser(std::vector<Lexeme>& lexemes)
 	binop_precedence["*"] = 40;
 }
 
-std::unique_ptr<ExprAST> Parser::parse_number_expr()
+std::shared_ptr<ExprAST> Parser::parse_number_expr()
 {
 	auto result = std::make_unique<NumberExprAST>(std::get<double>(curr_lexeme->value));
 	++curr_lexeme;
@@ -20,7 +20,7 @@ std::unique_ptr<ExprAST> Parser::parse_number_expr()
 	
 }
 
-std::unique_ptr<ExprAST> Parser::parse_paren_expr()
+std::shared_ptr<ExprAST> Parser::parse_paren_expr()
 {
 	++curr_lexeme;
 	auto V = parse_expr();
@@ -35,7 +35,7 @@ std::unique_ptr<ExprAST> Parser::parse_paren_expr()
 	return V;
 }
 
-std::unique_ptr<ExprAST> Parser::parse_expr()
+std::shared_ptr<ExprAST> Parser::parse_expr()
 {
 	auto lhs = parse_primary();
 	if (!lhs)
@@ -43,7 +43,7 @@ std::unique_ptr<ExprAST> Parser::parse_expr()
 	return parse_bin_op_rhs(0, std::move(lhs));
 }
 
-std::unique_ptr<ExprAST> Parser::parse_identifier_expr()
+std::shared_ptr<ExprAST> Parser::parse_identifier_expr()
 {
 	std::string id_name = std::get<std::string>(curr_lexeme->value);
 
@@ -66,7 +66,7 @@ std::unique_ptr<ExprAST> Parser::parse_identifier_expr()
 	
 
 	++curr_lexeme;
-	std::vector<std::unique_ptr<ExprAST>> args;
+	std::vector<std::shared_ptr<ExprAST>> args;
 	if (!std::holds_alternative<std::string>(curr_lexeme->value) || std::get<std::string>(curr_lexeme->value) != ")") {
 		while (true) 
 		{
@@ -89,7 +89,7 @@ std::unique_ptr<ExprAST> Parser::parse_identifier_expr()
 	return std::make_unique<CallExprAST>(id_name, std::move(args));
 }
 
-std::unique_ptr<ExprAST> Parser::parse_primary()
+std::shared_ptr<ExprAST> Parser::parse_primary()
 {
 	switch (curr_lexeme->token)
 	{
@@ -104,7 +104,7 @@ std::unique_ptr<ExprAST> Parser::parse_primary()
 	}
 }
 
-std::unique_ptr<ExprAST> Parser::parse_bin_op_rhs(int expr_prec, std::unique_ptr<ExprAST> lhs)
+std::shared_ptr<ExprAST> Parser::parse_bin_op_rhs(int expr_prec, std::shared_ptr<ExprAST> lhs)
 {
 	while (true) 
 	{
@@ -143,7 +143,7 @@ int Parser::get_tok_precedence()
 	return tok_prec;
 }
 
-std::unique_ptr<PrototypeAST> Parser::parse_prototype()
+std::shared_ptr<PrototypeAST> Parser::parse_prototype()
 {
 	if (curr_lexeme->token != Lexeme::Token::tok_identifier)
 		return log_error_p("Expected function name in prototype");
@@ -166,7 +166,7 @@ std::unique_ptr<PrototypeAST> Parser::parse_prototype()
 	return std::make_unique<PrototypeAST>(fn_name, std::move(arg_names));
 }
 
-std::unique_ptr<FunctionAST> Parser::parse_definition()
+std::shared_ptr<FunctionAST> Parser::parse_definition()
 {
 	++curr_lexeme;
 	auto proto = parse_prototype();
@@ -177,13 +177,13 @@ std::unique_ptr<FunctionAST> Parser::parse_definition()
 	return nullptr;
 }
 
-std::unique_ptr<PrototypeAST> Parser::parse_extern()
+std::shared_ptr<PrototypeAST> Parser::parse_extern()
 {
 	++curr_lexeme;
 	return parse_prototype();
 }
 
-std::unique_ptr<FunctionAST> Parser::parse_top_level_expr()
+std::shared_ptr<FunctionAST> Parser::parse_top_level_expr()
 {
 	if (auto E = parse_expr()) {
 		auto Proto = std::make_unique<PrototypeAST>("", std::vector<std::string>());
@@ -194,8 +194,10 @@ std::unique_ptr<FunctionAST> Parser::parse_top_level_expr()
 
 void Parser::handle_definition()
 {
-	if (parse_definition()) {
-		std::cerr << "Parsed a function definition." << std::endl;
+	auto ptr = parse_definition();
+	AST.push_back(ptr);
+	if (ptr) {
+		//std::cerr << "Parsed a function definition." << std::endl;
 	}
 	else {
 		++curr_lexeme;
@@ -204,8 +206,10 @@ void Parser::handle_definition()
 
 void Parser::handle_extern()
 {
-	if (parse_extern()) {
-		std::cerr << "Parsed an extern." << std::endl;
+	auto ptr = parse_extern();
+	AST.push_back(ptr);
+	if (ptr) {
+		//std::cerr << "Parsed an extern." << std::endl;
 	}
 	else {
 		++curr_lexeme;
@@ -214,22 +218,22 @@ void Parser::handle_extern()
 
 void Parser::handle_top_level_expression()
 {
-	// Evaluate a top-level expression into an anonymous function.
-	if (parse_top_level_expr()) {
-		std::cerr << "Parsed a top-level expr" << std::endl;
+	auto ptr = parse_top_level_expr();
+	AST.push_back(ptr);
+	if (ptr) {
+		//std::cerr << "Parsed a top-level expr" << std::endl;
 	}
 	else {
-		// Skip token for error recovery.
 		++curr_lexeme;
 	}
 }
 
-void Parser::parse()
+std::vector<ASTNode> Parser::parse()
 {
 	while (true) {
 		switch (curr_lexeme->token) {
 		case Lexeme::Token::tok_eof:
-			return;
+			return AST;
 		case Lexeme::Token::tok_semicol:
 			++curr_lexeme;
 			break;
@@ -244,4 +248,5 @@ void Parser::parse()
 			break;
 		}
 	}
+	return AST;
 }

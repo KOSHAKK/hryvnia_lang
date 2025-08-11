@@ -30,6 +30,7 @@ TEST(Lexer, Test1) {
 
 	auto processed = lex.process();
 	
+
 	std::vector<Lexeme> expected
 	{
 		{ Lexeme::Token::tok_number, 1.0 },
@@ -42,6 +43,7 @@ TEST(Lexer, Test1) {
 		{ Lexeme::Token::tok_identifier , "defextern"},
 		{ Lexeme::Token::tok_extern , "extern"},
 		{ Lexeme::Token::tok_number, 9.0 },
+		{ Lexeme::Token::tok_eof },
 	};
 
 	EXPECT_EQ(processed, expected);
@@ -78,6 +80,7 @@ TEST(Lexer, Test2) {
 		{ Lexeme::Token::tok_number, 432.22 },
 		{ Lexeme::Token::tok_binop, "<" },
 		{ Lexeme::Token::tok_number, 101.22 },
+		{ Lexeme::Token::tok_eof },
 	};
 
 	EXPECT_EQ(processed, expected);
