@@ -5,10 +5,14 @@
 #include <hryvnia_lang/Parser.hpp>
 #include <hryvnia_lang/AST.hpp>
 #include <hryvnia_lang/common.hpp>
+#include <hryvnia_lang/IRCtx.hpp>
+
 
 #include <vector>
 
 TEST(Parser, Test1) {
+	IRCtx cont;
+	cont.init();
 
 	std::string source = R"(
 

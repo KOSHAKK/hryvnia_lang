@@ -5,10 +5,15 @@
 #include <variant>
 #include <cmath>
 
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+
+
 class ExprAST {
 public:
     virtual ~ExprAST() = default;
     virtual bool equals(const ExprAST& other) const = 0;
+    virtual llvm::Value* codegen() = 0;
 };
 
 class NumberExprAST : public ExprAST {
@@ -20,6 +25,8 @@ public:
             return std::fabs(val - p->val) < 1e-5;
         return false;
     }
+
+    llvm::Value* codegen() override;
 };
 
 class VariableExprAST : public ExprAST {
@@ -31,6 +38,8 @@ public:
             return name == p->name;
         return false;
     }
+
+    llvm::Value* codegen() override;
 };
 
 class BinaryExprAST : public ExprAST {
@@ -49,6 +58,8 @@ public:
         }
         return false;
     }
+
+    llvm::Value* codegen() override;
 };
 
 class CallExprAST : public ExprAST {
@@ -69,7 +80,10 @@ public:
             }
             return true;
         }
+        return false;
     }
+
+    llvm::Value* codegen() override;
 };
 
 
@@ -84,6 +98,8 @@ public:
     bool equals(const PrototypeAST& other) const {
         return name == other.name && args == other.args;
     }
+
+    llvm::Function* codegen();
 };
 
 
@@ -101,6 +117,8 @@ public:
         if (!body->equals(*other.body)) return false;
         return true;
     }
+
+    llvm::Function* codegen();
 };
 
 using ASTNode = std::variant<std::shared_ptr<ExprAST>, std::shared_ptr<FunctionAST>, std::shared_ptr<PrototypeAST>, std::nullptr_t>;

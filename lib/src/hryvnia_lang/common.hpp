@@ -23,5 +23,5 @@ std::ostream& operator<<(std::ostream& os, const Lexeme& lex);
 
 std::unique_ptr<ExprAST> log_error(const char* str);
 std::unique_ptr<PrototypeAST> log_error_p(const char* str);
-
+llvm::Value* log_error_v(const char* str);
 

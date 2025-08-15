@@ -197,7 +197,10 @@ void Parser::handle_definition()
 	auto ptr = parse_definition();
 	AST.push_back(ptr);
 	if (ptr) {
-		//std::cerr << "Parsed a function definition." << std::endl;
+		if (auto* FnIR = ptr->codegen()) {
+			FnIR->print(llvm::errs());
+			std::cout << std::endl;
+		}
 	}
 	else {
 		++curr_lexeme;
@@ -209,7 +212,10 @@ void Parser::handle_extern()
 	auto ptr = parse_extern();
 	AST.push_back(ptr);
 	if (ptr) {
-		//std::cerr << "Parsed an extern." << std::endl;
+		if (auto* FnIR = ptr->codegen()) {
+			FnIR->print(llvm::errs());
+			std::cout << std::endl;
+		}
 	}
 	else {
 		++curr_lexeme;
@@ -221,7 +227,11 @@ void Parser::handle_top_level_expression()
 	auto ptr = parse_top_level_expr();
 	AST.push_back(ptr);
 	if (ptr) {
-		//std::cerr << "Parsed a top-level expr" << std::endl;
+		if (auto* FnIR = ptr->codegen()) {
+			FnIR->print(llvm::errs());
+			std::cout << std::endl;
+			FnIR->eraseFromParent();
+		}
 	}
 	else {
 		++curr_lexeme;

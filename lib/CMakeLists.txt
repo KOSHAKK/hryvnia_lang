@@ -19,3 +19,15 @@ target_include_directories(hryvnia_lang_tests PRIVATE
     src/*.hpp
 )
 target_link_libraries(hryvnia_lang_tests gtest gtest_main hryvnia_lang_lib)
+
+# llvm
+find_package(LLVM REQUIRED CONFIG)
+
+llvm_map_components_to_libnames(LLVM_LIBS core support)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "LLVM include dirs: ${LLVM_INCLUDE_DIRS}")
+message(STATUS "LLVM libraries: ${LLVM_LIBRARIES}")
+
+target_include_directories(hryvnia_lang_lib PUBLIC ${LLVM_INCLUDE_DIRS})
+target_link_libraries(hryvnia_lang_lib PUBLIC ${LLVM_LIBS})

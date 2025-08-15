@@ -1,5 +1,7 @@
 #include "common.hpp"
 
+#include "llvm/IR/DerivedTypes.h"
+
 std::ostream& operator<<(std::ostream& os, const std::monostate&) {
     return os << "<empty>";
 }
@@ -21,16 +23,6 @@ std::ostream& operator<<(std::ostream& os, Lexeme::Token token) {
 }
 
 
-//bool astnode_equal(const ASTNode& lhs, const ASTNode& rhs)
-//{
-//    if (lhs.index() != rhs.index())
-//        return false;
-//
-//
-//
-//}
-
-
 std::ostream& operator<<(std::ostream& os, const Lexeme& lex) {
     os << "{ token: " << lex.token << ", value: ";
     std::visit([&os](auto& value) { os << value; }, lex.value);
@@ -39,11 +31,16 @@ std::ostream& operator<<(std::ostream& os, const Lexeme& lex) {
 }
 
 std::unique_ptr<ExprAST> log_error(const char* str) {
-    fprintf(stderr, "Error: %s\n", str);
+    std::cerr << "Error: " << str << std::endl;
     return nullptr;
 }
 
 std::unique_ptr<PrototypeAST> log_error_p(const char* str) {
+    log_error(str);
+    return nullptr;
+}
+
+llvm::Value* log_error_v(const char* str) {
     log_error(str);
     return nullptr;
 }
