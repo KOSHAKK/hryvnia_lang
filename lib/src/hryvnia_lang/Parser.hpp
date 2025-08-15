@@ -4,8 +4,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include <hryvnia_lang/Lexer.hpp>
-#include <hryvnia_lang/AST.hpp>
+#include "Lexer.hpp"
+#include "AST.hpp"
 
 
 class Parser

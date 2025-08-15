@@ -7,8 +7,18 @@
 #include <hryvnia_lang/AST.hpp>
 #include <hryvnia_lang/common.hpp>
 
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/raw_ostream.h>
+
+
 int main()
 {
+
+	llvm::StringRef hello("Hello LLVM!");
+	llvm::outs() << hello << "\n";
+
+
+
 	std::string source = R"(
 		
 

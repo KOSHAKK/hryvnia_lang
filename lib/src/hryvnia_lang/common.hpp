@@ -1,8 +1,9 @@
 #pragma once
 #include <iostream>
-#include <hryvnia_lang/Lexer.hpp>
-#include <hryvnia_lang/AST.hpp>
 #include <memory>
+
+#include "AST.hpp"
+#include "Lexer.hpp"
 
 
 template <typename... Ts>
