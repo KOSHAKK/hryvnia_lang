@@ -2,6 +2,8 @@
 
 #include "llvm/IR/DerivedTypes.h"
 
+#include <hryvnia_lang/SpdLogWrapper.hpp>
+
 std::ostream& operator<<(std::ostream& os, const std::monostate&) {
     return os << "<empty>";
 }
@@ -31,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, const Lexeme& lex) {
 }
 
 std::unique_ptr<ExprAST> log_error(const char* str) {
-    std::cerr << "Error: " << str << std::endl;
+    loger::error("Error {}", str);
     return nullptr;
 }
 

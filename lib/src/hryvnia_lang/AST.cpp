@@ -4,7 +4,6 @@
 #include <hryvnia_lang/IRCtx.hpp>
 #include <llvm/IR/Verifier.h>
 
-
 bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs)
 {
 	if (lhs.index() != rhs.index())
@@ -134,6 +133,8 @@ llvm::Function* FunctionAST::codegen()
 		// Validate the generated code, checking for consistency.
 		llvm::verifyFunction(*fn);
 		
+		IRCtx::FPM->run(*fn, *IRCtx::FAM);
+
 		return fn;
 	}
 

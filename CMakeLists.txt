@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.31)
 project(hryvnia_lang)
+set(PROJECT_LIB_NAME hryvnia_lang_lib)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
 add_subdirectory(lib)
 
@@ -14,12 +16,7 @@ set(SRCS ${CPP_SRCS} ${HPP_SRCS})
 add_executable(${PROJECT_NAME} ${SRCS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC lib/src/hryvnia_lang)
-target_link_libraries(${PROJECT_NAME} PUBLIC hryvnia_lang_lib)
-
-
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
-
-
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_LIB_NAME})
 
 # gtest
 include(FetchContent)
@@ -31,15 +28,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 
-
-#llvm
-find_package(LLVM REQUIRED CONFIG)
-
-llvm_map_components_to_libnames(LLVM_LIBS core support)
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "LLVM include dirs: ${LLVM_INCLUDE_DIRS}")
-message(STATUS "LLVM libraries: ${LLVM_LIBRARIES}")
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${LLVM_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LLVM_LIBS})
+if(MSVC)
+    target_compile_options(${PROJECT_LIB_NAME} PRIVATE /wd4624)
+	target_compile_options(${PROJECT_NAME} PRIVATE /wd4624)
+    target_compile_options(hryvnia_lang_tests PRIVATE /wd4624)
+endif()

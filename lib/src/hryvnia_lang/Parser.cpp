@@ -1,6 +1,12 @@
 #include "Parser.hpp"
-#include <hryvnia_lang/common.hpp>
+
 #include <variant>
+
+#include <hryvnia_lang/IRCtx.hpp>
+#include <hryvnia_lang/common.hpp>
+#include <hryvnia_lang/SpdLogWrapper.hpp>
+
+#include "llvm/ExecutionEngine/Orc/ThreadSafeModule.h"
 
 Parser::Parser(std::vector<Lexeme>& lexemes)
 	: lexemes(lexemes),
@@ -49,11 +55,6 @@ std::shared_ptr<ExprAST> Parser::parse_identifier_expr()
 
 
 	++curr_lexeme;
-
-	//if (std::holds_alternative<double>(curr_lexeme->value))
-	//	return parse_number_expr();
-
-	// 3.0 != "("
 	
 	if (!std::holds_alternative<std::string>(curr_lexeme->value)) {
 		return std::make_unique<VariableExprAST>(id_name);
@@ -186,7 +187,7 @@ std::shared_ptr<PrototypeAST> Parser::parse_extern()
 std::shared_ptr<FunctionAST> Parser::parse_top_level_expr()
 {
 	if (auto E = parse_expr()) {
-		auto Proto = std::make_unique<PrototypeAST>("", std::vector<std::string>());
+		auto Proto = std::make_unique<PrototypeAST>("__anon_expr", std::vector<std::string>());
 		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
 	}
 	return nullptr;
@@ -198,6 +199,7 @@ void Parser::handle_definition()
 	AST.push_back(ptr);
 	if (ptr) {
 		if (auto* FnIR = ptr->codegen()) {
+			loger::info("Parse definition");
 			FnIR->print(llvm::errs());
 			std::cout << std::endl;
 		}
@@ -213,6 +215,7 @@ void Parser::handle_extern()
 	AST.push_back(ptr);
 	if (ptr) {
 		if (auto* FnIR = ptr->codegen()) {
+			loger::info("Parse extern");
 			FnIR->print(llvm::errs());
 			std::cout << std::endl;
 		}
@@ -228,9 +231,34 @@ void Parser::handle_top_level_expression()
 	AST.push_back(ptr);
 	if (ptr) {
 		if (auto* FnIR = ptr->codegen()) {
+
+			loger::info("Parse top level expression");
 			FnIR->print(llvm::errs());
 			std::cout << std::endl;
-			FnIR->eraseFromParent();
+
+			auto RT = IRCtx::JIT->getMainJITDylib().createResourceTracker();
+
+			auto TSM = llvm::orc::ThreadSafeModule(std::move(IRCtx::module), std::move(IRCtx::context));
+			IRCtx::ExitOnErr(IRCtx::JIT->addModule(std::move(TSM), RT));
+
+			IRCtx::init();
+
+			auto expr_symbol = IRCtx::ExitOnErr(IRCtx::JIT->lookup("__anon_expr"));
+			//assert(ExprSymbol && "Function not found");
+
+			//if (!expr_symbol.getFlags()) {
+			//	loger::error("Function not found");
+			//}
+
+			double (*FP)() = expr_symbol.getAddress().toPtr<double (*)()>();
+
+
+
+			loger::info("Evaluated to {}", FP());	
+
+			IRCtx::ExitOnErr(RT->remove());
+
+
 		}
 	}
 	else {

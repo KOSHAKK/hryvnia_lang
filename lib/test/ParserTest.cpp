@@ -6,13 +6,16 @@
 #include <hryvnia_lang/AST.hpp>
 #include <hryvnia_lang/common.hpp>
 #include <hryvnia_lang/IRCtx.hpp>
-
+#include <spdlog/spdlog.h>
 
 #include <vector>
 
 TEST(Parser, Test1) {
-	IRCtx cont;
-	cont.init();
+	IRCtx::init_target_and_jit();
+	IRCtx::init();
+
+	spdlog::set_pattern("%^[%l]%$ %v");
+
 
 	std::string source = R"(
 

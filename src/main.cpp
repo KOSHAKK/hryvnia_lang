@@ -19,21 +19,24 @@
 #include <hryvnia_lang/AST.hpp>
 #include <hryvnia_lang/common.hpp>
 #include <hryvnia_lang/IRCtx.hpp>
+#include <hryvnia_lang/SpdLogWrapper.hpp>
 
+#include "llvm/Support/TargetSelect.h"
 
 
 int main()
 {
-	IRCtx cont;
-	cont.init();
+	spdlog::set_pattern("%^[%l]%$ %v");
+
+
+	IRCtx::init_target_and_jit();
+	IRCtx::init();
 
 	std::string source = R"(
 		
-		extern cos(x);
+		def foo(x y) x * y + 4 - 2;
 		
-		def foo(a b) a*a + 2*a*b + b*cos(1.123);
-
-		def bar(a) foo(a, 4.0) + bar(31337);
+		foo(10, 15);
 
 
 )";
@@ -51,5 +54,7 @@ int main()
 
 	return 0;
 }
+
+
 
 
