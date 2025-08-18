@@ -33,11 +33,17 @@ int main()
 	IRCtx::init();
 
 	std::string source = R"(
-		
-		def foo(x y) x * y + 4 - 2;
-		
-		foo(10, 15);
+			
+		extern sin(x);
+		extern cos(x);
+		extern pow(a b);
 
+		def foo(x) sin(x)*sin(x) + cos(x)*cos(x);
+
+		foo(42);		
+
+		pow(12,2);
+		
 
 )";
 	std::istringstream sstream(source);

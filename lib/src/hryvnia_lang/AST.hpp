@@ -119,6 +119,8 @@ public:
     }
 
     llvm::Function* codegen();
+
+    static std::unordered_map<std::string, std::shared_ptr<PrototypeAST>> function_protos;
 };
 
 using ASTNode = std::variant<std::shared_ptr<ExprAST>, std::shared_ptr<FunctionAST>, std::shared_ptr<PrototypeAST>, std::nullptr_t>;
@@ -127,3 +129,5 @@ using ASTNode = std::variant<std::shared_ptr<ExprAST>, std::shared_ptr<FunctionA
 bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs);
 
 bool operator==(const ASTNode& lhs, const ASTNode& rhs);
+
+llvm::Function* get_function(const std::string& Name);

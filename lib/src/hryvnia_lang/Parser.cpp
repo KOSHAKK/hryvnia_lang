@@ -200,8 +200,11 @@ void Parser::handle_definition()
 	if (ptr) {
 		if (auto* FnIR = ptr->codegen()) {
 			loger::info("Parse definition");
-			FnIR->print(llvm::errs());
+			//FnIR->print(llvm::errs());
 			std::cout << std::endl;
+			IRCtx::ExitOnErr(IRCtx::JIT->addModule(
+				llvm::orc::ThreadSafeModule(std::move(IRCtx::module), std::move(IRCtx::context))));
+			IRCtx::init();
 		}
 	}
 	else {
@@ -216,8 +219,9 @@ void Parser::handle_extern()
 	if (ptr) {
 		if (auto* FnIR = ptr->codegen()) {
 			loger::info("Parse extern");
-			FnIR->print(llvm::errs());
+			//FnIR->print(llvm::errs());
 			std::cout << std::endl;
+			FunctionAST::function_protos[ptr->name] = std::move(ptr);
 		}
 	}
 	else {
@@ -233,7 +237,7 @@ void Parser::handle_top_level_expression()
 		if (auto* FnIR = ptr->codegen()) {
 
 			loger::info("Parse top level expression");
-			FnIR->print(llvm::errs());
+			//FnIR->print(llvm::errs());
 			std::cout << std::endl;
 
 			auto RT = IRCtx::JIT->getMainJITDylib().createResourceTracker();

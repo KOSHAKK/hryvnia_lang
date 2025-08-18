@@ -4,6 +4,10 @@
 #include <hryvnia_lang/IRCtx.hpp>
 #include <llvm/IR/Verifier.h>
 
+
+std::unordered_map<std::string, std::shared_ptr<PrototypeAST>> FunctionAST::function_protos;
+
+
 bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs)
 {
 	if (lhs.index() != rhs.index())
@@ -24,6 +28,18 @@ bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs)
 bool operator==(const ASTNode& lhs, const ASTNode& rhs)
 {
 	return ASTNode_equals(lhs, rhs);
+}
+
+llvm::Function* get_function(const std::string& Name)
+{
+	if (auto* F = IRCtx::module->getFunction(Name))
+		return F;
+
+	auto FI = FunctionAST::function_protos.find(Name);
+	if (FI != FunctionAST::function_protos.end())
+		return FI->second->codegen();
+
+	return nullptr;
 }
 
 llvm::Value* NumberExprAST::codegen()
@@ -66,7 +82,7 @@ llvm::Value* BinaryExprAST::codegen()
 llvm::Value* CallExprAST::codegen()
 {
 	// Look up the name in the global module table.
-	llvm::Function* CalleeF = IRCtx::module->getFunction(callee);
+	llvm::Function* CalleeF = get_function(callee);
 	if (!CalleeF)
 		return log_error_v("Unknown function referenced");
 
@@ -106,7 +122,10 @@ llvm::Function* PrototypeAST::codegen()
 llvm::Function* FunctionAST::codegen()
 {
 	// First, check for an existing function from a previous 'extern' declaration.
-	llvm::Function* fn = IRCtx::module->getFunction(proto->name);
+
+	auto& P = *proto;
+	function_protos[proto->name] = std::move(proto);
+	llvm::Function* fn = get_function(P.name);
 
 	if (!fn)
 		fn = proto->codegen();
