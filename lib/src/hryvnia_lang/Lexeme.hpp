@@ -24,6 +24,10 @@ struct Lexeme
 
         tok_binop,
 
+        tok_if,
+        tok_then,
+        tok_else,
+
         tok_undefine,
     };
 

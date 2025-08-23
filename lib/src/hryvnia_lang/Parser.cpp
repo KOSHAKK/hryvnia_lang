@@ -100,6 +100,8 @@ std::shared_ptr<ExprAST> Parser::parse_primary()
 		return parse_number_expr();
 	case Lexeme::Token::tok_lparen:
 		return parse_paren_expr();
+	case Lexeme::Token::tok_if:
+		return parse_if_expr();
 	default:
 		return log_error("unknown token when expecting an expression");
 	}
@@ -191,6 +193,37 @@ std::shared_ptr<FunctionAST> Parser::parse_top_level_expr()
 		return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
 	}
 	return nullptr;
+}
+
+std::shared_ptr<ExprAST> Parser::parse_if_expr()
+{
+	++curr_lexeme;
+
+	auto cond = parse_expr();
+
+	if (!cond)
+		return nullptr;
+
+	if (curr_lexeme->token != Lexeme::Token::tok_then) {
+		return log_error("expected then");
+	}
+	++curr_lexeme;
+
+
+	auto then = parse_expr();
+	if (!then)
+		return nullptr;
+
+	if (curr_lexeme->token != Lexeme::Token::tok_else) {
+		return log_error("expected else");
+	}
+	++curr_lexeme;
+
+	auto Else = parse_expr();
+	if (!Else)
+		return nullptr;
+
+	return std::make_shared<IfExprAST>(std::move(cond), std::move(then), std::move(Else));
 }
 
 void Parser::handle_definition()

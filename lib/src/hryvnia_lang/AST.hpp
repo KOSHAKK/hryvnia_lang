@@ -86,6 +86,24 @@ public:
     llvm::Value* codegen() override;
 };
 
+class IfExprAST : public ExprAST {
+public:
+    std::shared_ptr<ExprAST> cond, then, Else;
+
+    IfExprAST(std::shared_ptr<ExprAST> cond, std::shared_ptr<ExprAST> then,
+        std::shared_ptr<ExprAST> Else)
+        : cond(std::move(cond)), then(std::move(then)), Else(std::move(Else)) {
+    }
+
+    bool equals(const ExprAST& other) const override {
+        return true; // todo
+    }
+
+
+    llvm::Value* codegen() override;
+};
+
+
 
 class PrototypeAST {
 public:
@@ -122,6 +140,9 @@ public:
 
     static std::unordered_map<std::string, std::shared_ptr<PrototypeAST>> function_protos;
 };
+
+
+
 
 using ASTNode = std::variant<std::shared_ptr<ExprAST>, std::shared_ptr<FunctionAST>, std::shared_ptr<PrototypeAST>, std::nullptr_t>;
 

@@ -30,6 +30,7 @@ private:
 	std::shared_ptr<PrototypeAST> parse_extern();
 	std::shared_ptr<FunctionAST> parse_definition();
 	std::shared_ptr<FunctionAST> parse_top_level_expr();
+	std::shared_ptr<ExprAST> parse_if_expr();
 	void handle_definition();
 	void handle_extern();
 	void handle_top_level_expression();

@@ -26,24 +26,25 @@
 
 int main()
 {
-	spdlog::set_pattern("%^[%l]%$ %v");
+	loger::set_pattern("%^[%l]%$ %v");
 
 
 	IRCtx::init_target_and_jit();
 	IRCtx::init();
 
 	std::string source = R"(
-			
-		extern sin(x);
-		extern cos(x);
-		extern pow(a b);
-
-		def foo(x) sin(x)*sin(x) + cos(x)*cos(x);
-
-		foo(42);		
-
-		pow(12,2);
 		
+		extern printd(val);	
+		extern sin(x);	
+	
+
+		def fib(x)
+			if x < 3 then
+				1
+			else
+				fib(x-1)+fib(x-2);
+		
+		fib(15);
 
 )";
 	std::istringstream sstream(source);

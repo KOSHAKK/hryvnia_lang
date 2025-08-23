@@ -48,14 +48,21 @@ Lexeme Lexer::get_next_lexeme()
             identifier_str += last_char;
 
         if (identifier_str == "def") {
-            //last_char = get_next_char();
             return { Lexeme::Token::tok_def, identifier_str };
         }
         if (identifier_str == "extern") {
-            //last_char = get_next_char();
             return { Lexeme::Token::tok_extern, identifier_str };
         }
-        //last_char = get_next_char();
+        if (identifier_str == "if") {
+            return { Lexeme::Token::tok_if, identifier_str };
+        }
+        if (identifier_str == "then") {
+            return { Lexeme::Token::tok_then, identifier_str };
+        }
+        if (identifier_str == "else") {
+            return { Lexeme::Token::tok_else, identifier_str };
+        }
+
         return { Lexeme::Token::tok_identifier, identifier_str };
     }
 

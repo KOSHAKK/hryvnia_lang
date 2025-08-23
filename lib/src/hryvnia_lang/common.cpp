@@ -47,3 +47,8 @@ llvm::Value* log_error_v(const char* str) {
     return nullptr;
 }
 
+extern "C" DLLEXPORT double printd(double val)
+{
+    std::cout << val << std::endl;
+    return val;
+}

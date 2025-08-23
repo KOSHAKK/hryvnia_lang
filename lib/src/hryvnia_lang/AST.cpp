@@ -5,6 +5,9 @@
 #include <llvm/IR/Verifier.h>
 
 
+#include <llvm/Support/GraphWriter.h>
+#include <llvm/IR/CFG.h>
+
 std::unordered_map<std::string, std::shared_ptr<PrototypeAST>> FunctionAST::function_protos;
 
 
@@ -20,6 +23,7 @@ bool ASTNode_equals(const ASTNode& lhs, const ASTNode& rhs)
 		[](const std::shared_ptr<ExprAST> lhs, const std::shared_ptr<ExprAST> rhs) { return lhs->equals(*rhs); },
 		[](const std::shared_ptr<FunctionAST> lhs, const std::shared_ptr< FunctionAST> rhs) { return lhs->equals(*rhs); },
 		[](const std::shared_ptr<PrototypeAST> lhs, const std::shared_ptr<PrototypeAST> rhs) { return lhs->equals(*rhs); },
+		[](const std::shared_ptr<IfExprAST> lhs, const std::shared_ptr<IfExprAST> rhs) { return true; }, // todo
 		[](auto&, auto&) { return false; },
 	}, lhs, rhs);
 		
@@ -85,6 +89,7 @@ llvm::Value* CallExprAST::codegen()
 	llvm::Function* CalleeF = get_function(callee);
 	if (!CalleeF)
 		return log_error_v("Unknown function referenced");
+
 
 	// If argument mismatch error.
 	if (CalleeF->arg_size() != args.size())
@@ -160,4 +165,56 @@ llvm::Function* FunctionAST::codegen()
 	// Error reading body, remove function.
 	fn->eraseFromParent();
 	return nullptr;
+}
+
+llvm::Value* IfExprAST::codegen()
+{
+	llvm::Value* cond_v = cond->codegen();
+
+	if (!cond_v) {
+		return nullptr;
+	}
+
+	cond_v = IRCtx::builder->CreateFCmpONE(
+		cond_v, llvm::ConstantFP::get(*IRCtx::context,  llvm::APFloat(0.0)), "ifcond");
+
+	llvm::Function* fn = IRCtx::builder->GetInsertBlock()->getParent();
+
+	llvm::BasicBlock* then_BB =
+		llvm::BasicBlock::Create(*IRCtx::context, "then", fn);
+	llvm::BasicBlock* else_BB = llvm::BasicBlock::Create(*IRCtx::context, "else");
+	llvm::BasicBlock* merge_BB = llvm::BasicBlock::Create(*IRCtx::context, "ifcont");
+
+	IRCtx::builder->CreateCondBr(cond_v, then_BB, else_BB);
+
+	IRCtx::builder->SetInsertPoint(then_BB);
+
+	llvm::Value* then_v = then->codegen();
+	if (!then_v)
+		return nullptr;
+
+	IRCtx::builder->CreateBr(merge_BB);
+	then_BB = IRCtx::builder->GetInsertBlock();
+
+	fn->insert(fn->end(), else_BB);
+	IRCtx::builder->SetInsertPoint(else_BB);
+
+	llvm::Value* else_V = Else->codegen();
+	if (!else_V)
+		return nullptr;
+
+	IRCtx::builder->CreateBr(merge_BB);
+	else_BB = IRCtx::builder->GetInsertBlock();
+
+	fn->insert(fn->end(), merge_BB);
+	IRCtx::builder->SetInsertPoint(merge_BB);
+	llvm::PHINode* PN =
+		IRCtx::builder->CreatePHI(llvm::Type::getDoubleTy(*IRCtx::context), 2, "iftmp");
+
+	PN->addIncoming(then_v, then_BB);
+	PN->addIncoming(else_V, else_BB);
+
+	//IRCtx::module->print(llvm::outs(), nullptr);
+
+	return PN;
 }
